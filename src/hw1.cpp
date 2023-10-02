@@ -1,12 +1,18 @@
+//zhengyu huang
 #include "hw1.h"
 #include "hw1_scenes.h"
 
 using namespace hw1;
 
+bool inCircle(Real x, Real y, Vector2 center, Real radius){
+    return sqrt(pow(x - center.x, 2) + pow(y - center.y, 2)) < radius; // distance formula
+}
+
 Image3 hw_1_1(const std::vector<std::string> &params) {
     // Homework 1.1: render a circle at the specified
     // position, with the specified radius and color.
 
+    
     Image3 img(640 /* width */, 480 /* height */);
 
     Vector2 center = Vector2{img.width / 2 + Real(0.5), img.height / 2 + Real(0.5)};
@@ -27,9 +33,15 @@ Image3 hw_1_1(const std::vector<std::string> &params) {
         }
     }
 
+    //if pixel center in circle, paint in in color
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
-            img(x, y) = Vector3{1, 1, 1};
+            if (inCircle(x,y,center,radius)){
+                img(x, y) = color;
+            }
+            else{
+                img(x, y) = Vector3{1, 1, 1};
+            }
         }
     }
     return img;
