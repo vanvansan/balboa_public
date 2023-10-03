@@ -8,6 +8,14 @@ bool inCircle(Real x, Real y, Vector2 center, Real radius){
     return sqrt(pow(x - center.x, 2) + pow(y - center.y, 2)) < radius; // distance formula
 }
 
+void paintCanvas(Image3* imgPtr,Real width, Real height){
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            (*imgPtr)(x, y) = Vector3{0.5, 0.5, 0.5};
+        }
+    }
+}
+
 Image3 hw_1_1(const std::vector<std::string> &params) {
     // Homework 1.1: render a circle at the specified
     // position, with the specified radius and color.
@@ -33,14 +41,12 @@ Image3 hw_1_1(const std::vector<std::string> &params) {
         }
     }
 
+    paintCanvas(&img, img.width,img.height);
     //if pixel center in circle, paint in in color
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
             if (inCircle(x,y,center,radius)){
                 img(x, y) = color;
-            }
-            else{
-                img(x, y) = Vector3{1, 1, 1};
             }
         }
     }
@@ -58,11 +64,11 @@ Image3 hw_1_2(const std::vector<std::string> &params) {
 
     Image3 img(scene.resolution.x, scene.resolution.y);
 
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            img(x, y) = Vector3{1, 1, 1};
-        }
-    }
+    paintCanvas(&img,scene.resolution.x, scene.resolution.y);
+    
+
+    //render circles using rasterization style
+
     return img;
 }
 
