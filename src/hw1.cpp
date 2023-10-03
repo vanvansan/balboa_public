@@ -73,10 +73,10 @@ Image3 hw_1_2(const std::vector<std::string> &params) {
         Vector2 center = circle.center;
         Real radius = circle.radius;
         Vector3 color = circle.color;
-        for (int i = center.x - radius; i < center.y + radius; i++){
-            for (int j = center.y - radius; i < center.y + radius; j++){
-                if(i >= 0 && j >= 0){
-                    img(i,j) = color;
+        for (int y = center.y - radius; y < center.y + radius; y++){
+            for (int x = center.x - radius; x < center.x + radius; x++){
+                if(x >= 0 && y >= 0 && inCircle(x,y,center,radius)){
+                    img(x,y) = color;
                 }
             }
         }
