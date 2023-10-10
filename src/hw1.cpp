@@ -25,7 +25,7 @@ Image3 hw_1_1(const std::vector<std::string> &params) {
 
     Vector2 center = Vector2{img.width / 2 + Real(0.5), img.height / 2 + Real(0.5)};
     Real radius = 100.0;
-    Vector3 color = Vector3{1.0, 0.5, 0.5};
+    Vector3 color = Vector3{0.5, 0.5, 0.5};
     for (int i = 0; i < (int)params.size(); i++) {
         if (params[i] == "-center") {
             Real x = std::stof(params[++i]);
@@ -41,7 +41,7 @@ Image3 hw_1_1(const std::vector<std::string> &params) {
         }
     }
 
-    paintCanvas(&img, img.width,img.height, color);
+    paintCanvas(&img, img.width, img.height, color);
     //if pixel center in circle, paint in in color
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
