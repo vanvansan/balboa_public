@@ -1,2 +1,0 @@
-/Library/Developer/CommandLineTools/usr/bin/ar qc libbalboa_lib.a CMakeFiles/balboa_lib.dir/src/3rdparty/glad.c.o CMakeFiles/balboa_lib.dir/src/3rdparty/tinyply.cpp.o CMakeFiles/balboa_lib.dir/src/hw1.cpp.o CMakeFiles/balboa_lib.dir/src/hw1_scenes.cpp.o CMakeFiles/balboa_lib.dir/src/hw2.cpp.o CMakeFiles/balboa_lib.dir/src/hw2_scenes.cpp.o CMakeFiles/balboa_lib.dir/src/hw3.cpp.o CMakeFiles/balboa_lib.dir/src/hw3_scenes.cpp.o CMakeFiles/balboa_lib.dir/src/image.cpp.o
-/Library/Developer/CommandLineTools/usr/bin/ranlib libbalboa_lib.a
