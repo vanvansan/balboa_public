@@ -188,8 +188,20 @@ Image3 hw_1_4(const std::vector<std::string> &params) {
     return img;
 }
 
+// take a vector of color vectors and return the average color of all pixels
+Vector3 averageColor(std::vector<Vector3> colorVector){
+    int numSubpixel = size(colorVector);
+    Real r = 0; Real g = 0; Real b = 0;
+    for (auto color : colorVector){
+        r += color.x;
+        g += color.y;
+        b += color.z;
+    }
+    return Vector3{r/numSubpixel, g/numSubpixel, b/numSubpixel};
+}
+
+// Homework 1.5: antialiasing
 Image3 hw_1_5(const std::vector<std::string> &params) {
-    // Homework 1.5: antialiasing
     if (params.size() == 0) {
         return Image3(0, 0);
     }
@@ -199,11 +211,46 @@ Image3 hw_1_5(const std::vector<std::string> &params) {
 
     Image3 img(scene.resolution.x, scene.resolution.y);
 
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            img(x, y) = Vector3{1, 1, 1};
-        }
-    }
+    //logic copied from 1_4
+    paintCanvas(&img,scene.resolution.x, scene.resolution.y, scene.background);
+    const int SSAA_X_FACTOR = 4;
+    const int SSAA_Y_FACTOR = 4;
+    auto shapes = scene.shapes;
+    std::vector<Vector3> subPixels;
+    Vector3 subPixel;
+    for (Real y = 0; y < img.height; y++) {
+    for (Real x = 0; x < img.width; x++) {
+        // in this case, divide a pixel in to a 4x4 mosaic
+        for (Real subY = y; subY< y + 1; subY += (1.0 / SSAA_Y_FACTOR)){
+        for (Real subX = x; subX< x + 1; subX += (1.0 / SSAA_X_FACTOR)){
+            subPixel = scene.background;
+            for (auto shape : shapes){
+                Vector3 objSpaceP;
+                if (auto *circle = std::get_if<Circle>(&shape)) {
+                    objSpaceP = coordObjSpace(subX, subY, circle->transform);
+                    if (inCircle(objSpaceP.x, objSpaceP.y, circle->center, circle->radius)){
+                        subPixel = circle->color;
+                    }
+                } 
+                else if (auto *rectangle = std::get_if<Rectangle>(&shape)) {
+                    objSpaceP = coordObjSpace(subX, subY, rectangle->transform);
+                    if (inRectangle(objSpaceP.x, objSpaceP.y, rectangle->p_min, rectangle->p_max)){
+                        subPixel = rectangle->color;
+                    }
+                }
+                else if (auto *triangle = std::get_if<Triangle>(&shape)) {
+                    objSpaceP = coordObjSpace(subX, subY, triangle->transform);
+                    if (inTriangle(objSpaceP.x, objSpaceP.y, triangle->p0, triangle->p1, triangle->p2)){
+                        subPixel = triangle->color;
+                    }
+                }
+            }
+            subPixels.push_back(subPixel);
+        }}
+        img(x, y) = averageColor(subPixels);
+        subPixels.clear();
+    }}
+    
     return img;
 }
 
