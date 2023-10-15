@@ -142,6 +142,12 @@ Image3 hw_1_3(const std::vector<std::string> &params) {
     return img;
 }
 
+Vector3 coordObjSpace(Real x, Real y, Matrix3x3 transform){
+    transform = inverse(transform);
+    return transform * Vector3{x, y, 1.0};
+
+}
+
 Image3 hw_1_4(const std::vector<std::string> &params) {
     // Homework 1.4: render transformed shapes
     if (params.size() == 0) {
@@ -153,10 +159,30 @@ Image3 hw_1_4(const std::vector<std::string> &params) {
 
     Image3 img(scene.resolution.x, scene.resolution.y);
 
-
-    for (int y = 0; y < img.height; y++) {
+    paintCanvas(&img,scene.resolution.x, scene.resolution.y, scene.background);
+    auto shapes = scene.shapes;
+        for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
-            //img(x, y) = Vector3{1, 1, 1};
+            for (auto shape : shapes){
+                if (auto *circle = std::get_if<Circle>(&shape)) {
+                    Vector3 objSpaceP = coordObjSpace(x, y, circle->transform);
+                    if (inCircle(objSpaceP.x, objSpaceP.y, circle->center, circle->radius)){
+                        img(x,y) = circle->color;
+                    }
+                } 
+                else if (auto *rectangle = std::get_if<Rectangle>(&shape)) {
+                    Vector3 objSpaceP = coordObjSpace(x, y, rectangle->transform);
+                    if (inRectangle(objSpaceP.x, objSpaceP.y, rectangle->p_min, rectangle->p_max)){
+                        img(x, y) = rectangle->color;
+                    }
+                }
+                else if (auto *triangle = std::get_if<Triangle>(&shape)) {
+                    Vector3 objSpaceP = coordObjSpace(x, y, triangle->transform);
+                    if (inTriangle(objSpaceP.x, objSpaceP.y, triangle->p0, triangle->p1, triangle->p2)){
+                        img(x, y) = triangle->color;
+                    }
+                }
+            }
         }
     }
     return img;
