@@ -94,8 +94,10 @@ Matrix3x3 parse_transformation(const json &node) {
             F = S * F;
         } else if (auto rotate_it = it->find("rotate"); rotate_it != it->end()) {
             Real angle = *rotate_it;
+            const Real pi = 3.14159265;
+            angle = (angle / 180) * pi;
             Matrix3x3 R = Matrix3x3::identity();
-            R(0, 0) = (Real)cos(angle); R(0, 1) = -(Real)sin(angle); 
+            R(0, 0) = (Real)cos(angle); R(0, 1) = 0 - (Real)sin(angle); 
             R(1, 0) = (Real)sin(angle); R(1, 1) = (Real) cos(angle);
             F = R * F;
         } else if (auto translate_it = it->find("translate"); translate_it != it->end()) {

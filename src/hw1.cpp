@@ -265,10 +265,45 @@ Image3 hw_1_6(const std::vector<std::string> &params) {
 
     Image3 img(scene.resolution.x, scene.resolution.y);
 
-    for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            img(x, y) = Vector3{1, 1, 1};
-        }
-    }
+    //copied from 1_5
+    paintCanvas(&img,scene.resolution.x, scene.resolution.y, scene.background);
+    const int SSAA_X_FACTOR = 4;
+    const int SSAA_Y_FACTOR = 4;
+    auto shapes = scene.shapes;
+    std::vector<Vector3> subPixels;
+    Vector3 subPixel;
+    for (Real y = 0; y < img.height; y++) {
+    for (Real x = 0; x < img.width; x++) {
+        // in this case, divide a pixel in to a 4x4 mosaic
+        for (Real subY = y; subY< y + 1; subY += (1.0 / SSAA_Y_FACTOR)){
+        for (Real subX = x; subX< x + 1; subX += (1.0 / SSAA_X_FACTOR)){
+            subPixel = scene.background;
+            for (auto shape : shapes){
+                Vector3 objSpaceP;
+                if (auto *circle = std::get_if<Circle>(&shape)) {
+                    objSpaceP = coordObjSpace(subX, subY, circle->transform);
+                    if (inCircle(objSpaceP.x, objSpaceP.y, circle->center, circle->radius)){
+                        subPixel = circle->alpha * circle->color + (1 - circle->alpha) * subPixel;
+                    }
+                } 
+                else if (auto *rectangle = std::get_if<Rectangle>(&shape)) {
+                    objSpaceP = coordObjSpace(subX, subY, rectangle->transform);
+                    if (inRectangle(objSpaceP.x, objSpaceP.y, rectangle->p_min, rectangle->p_max)){
+                        subPixel = rectangle->alpha * rectangle->color + (1 - rectangle->alpha) * subPixel;
+                    }
+                }
+                else if (auto *triangle = std::get_if<Triangle>(&shape)) {
+                    objSpaceP = coordObjSpace(subX, subY, triangle->transform);
+                    if (inTriangle(objSpaceP.x, objSpaceP.y, triangle->p0, triangle->p1, triangle->p2)){
+                        subPixel = triangle->alpha * triangle->color + (1 - triangle->alpha) * subPixel;
+                    }
+                }
+            }
+            subPixels.push_back(subPixel);
+        }}
+        img(x, y) = averageColor(subPixels);
+        subPixels.clear();
+    }}
+    
     return img;
 }

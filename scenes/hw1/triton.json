@@ -1,0 +1,19 @@
+{
+    "resolution": [1920,1080],
+    "background": [
+        1, 1, 1
+    ],
+    "objects": [
+        {
+            "type": "rectangle",
+            "p_min": [120, 120],
+                "p_max": [320, 360],
+            "color": [0.6, 0.3, 0.5],
+            "alpha": 0.4,
+            "transform":[
+                {"rotate": 45}
+            ]
+        }
+    ]
+
+}
