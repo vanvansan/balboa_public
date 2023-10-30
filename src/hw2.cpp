@@ -3,6 +3,24 @@
 
 using namespace hw2;
 
+Vector2 projectedPoint(Vector3 v){
+    Vector2 projectedPoint{v.x/v.z,v.y/(double)v.z};
+    // std::cout<< projectedPoint.x << std::endl; 
+    // std::cout<< projectedPoint.y << std::endl; 
+
+    return projectedPoint;
+}
+
+Vector2 c_space_to_i_space(Vector2 v, Real s, Real a, Real width, Real height){
+    Real x_in_i = width * ((v.x + s*a) / (2 * s * a));
+    Real y_in_i = height * ((v.y + s) / (2 * s));
+
+    // std::cout<<    << std::endl;
+
+    return Vector2{x_in_i, y_in_i};
+
+}
+
 Image3 hw_2_1(const std::vector<std::string> &params) {
     // Homework 2.1: render a single 3D triangle
 
@@ -11,8 +29,10 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
     Vector3 p0{0, 0, -1};
     Vector3 p1{1, 0, -1};
     Vector3 p2{0, 1, -1};
+    
     Real s = 1; // scaling factor of the view frustrum
     Vector3 color = Vector3{1.0, 0.5, 0.5};
+    Real z = -1;
     Real z_near = 1e-6; // distance of the near clipping plane
     for (int i = 0; i < (int)params.size(); i++) {
         if (params[i] == "-s") {
@@ -39,9 +59,31 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
         }
     }
 
+    Real aspect_ratio = double(img.width)/img.height; 
+
+    Vector2 p0p{0.0,0.0};
+    Vector2 p1p{0.0,0.0};
+    Vector2 p2p{0.0,0.0};
+    
+    p0p = projectedPoint(p0);
+    p1p = projectedPoint(p1);
+    p2p = projectedPoint(p2); 
+
+
+
+    // change from camera space to image space
+
+    paintCanvas(&img, img.width, img.height, Vector3{1.0, 1.0, 1.0});
+
+    p0p = c_space_to_i_space(p0p, s, aspect_ratio, img.width, img.height);
+    p1p = c_space_to_i_space(p1p, s, aspect_ratio, img.width, img.height);
+    p2p = c_space_to_i_space(p2p, s, aspect_ratio, img.width, img.height);
+    
+    std::cout<< color   << std::endl;
+
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
-            img(x, y) = Vector3{1, 1, 1};
+            if (inTriangle(x, y , p0p, p1p, p2p)) img(x, y) = color;
         }
     }
     return img;

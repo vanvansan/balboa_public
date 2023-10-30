@@ -2,7 +2,10 @@
 #include "hw1.h"
 #include "hw1_scenes.h"
 
+
+
 using namespace hw1;
+
 
 bool inCircle(Real x, Real y, Vector2 center, Real radius){
     return sqrt(pow(x - center.x, 2) + pow(y - center.y, 2)) < radius; // distance formula
@@ -21,7 +24,8 @@ bool halfPlane (Vector2 p0, Vector2 p1, Vector2 q){
 
 bool inTriangle(Real x, Real y, Vector2 p0, Vector2 p1, Vector2 p2){
     Vector2 q = Vector2{x, y};
-    return halfPlane(p0, p1, q) &&  halfPlane(p1, p2, q) &&  halfPlane(p2, p0, q);
+    return (halfPlane(p0, p1, q) &&  halfPlane(p1, p2, q) &&  halfPlane(p2, p0, q)) ||
+            (! halfPlane(p0, p1, q) &&  ! halfPlane(p1, p2, q) &&  !halfPlane(p2, p0, q));
 }
 
 
@@ -32,6 +36,8 @@ void paintCanvas(Image3* imgPtr,Real width, Real height, Vector3 color){
         }
     }
 }
+
+
 
 Image3 hw_1_1(const std::vector<std::string> &params) {
     // Homework 1.1: render a circle at the specified
