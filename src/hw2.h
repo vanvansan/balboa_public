@@ -12,3 +12,10 @@ Image3 hw_2_4(const std::vector<std::string> &params);
 
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real a, Real width, Real height);
 Vector2 projectedPoint(Vector3 v);
+Vector3 projectedPoint_v3(Vector3 v);
+Vector3 projected_barycentric_coordinate(Vector3 b_prime, Vector3 vector_zs, Vector3 p0p, Vector3 p1p, Vector3 p2p);
+Vector3 unique_coefficient(Vector3 p0p, Vector3 p1p, Vector3 p2p, Vector3 p);
+Real original_depth(Vector3 b, Vector3 p0, Vector3 p1, Vector3 p2);
+Vector3 original_coefficients(Vector3 b_prime, Vector3 p0, Vector3 p1, Vector3 p2);
+
+

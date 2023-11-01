@@ -3,22 +3,49 @@
 
 using namespace hw2;
 
-Vector2 projectedPoint(Vector3 v){
-    Vector2 projectedPoint{v.x/v.z,v.y/(double)v.z};
-    // std::cout<< projectedPoint.x << std::endl; 
-    // std::cout<< projectedPoint.y << std::endl; 
-
-    return projectedPoint;
-}
-
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real a, Real width, Real height){
     Real x_in_i = width * ((v.x + s*a) / (2 * s * a));
     Real y_in_i = height * ((v.y + s) / (2 * s));
-
-    // std::cout<<    << std::endl;
-
     return Vector2{x_in_i, y_in_i};
+}
 
+Vector2 projectedPoint(Vector3 v){
+    Vector2 projectedPoint{v.x/v.z,v.y/v.z};
+    return projectedPoint;
+}
+
+Vector3 projectedPoint_v3(Vector3 v){
+    Vector3 projectedPoint{v.x/v.z,v.y/v.z, -1.0};
+    return projectedPoint;
+}
+
+// use b0',b1', b2', p0, p1, p2 to find b0, b1, b2, return {b0, b1, b2} as v3
+Vector3 original_coefficients(Vector3 b_prime, Vector3 p0, Vector3 p1, Vector3 p2){
+    Real b0p, b1p, b2p;
+    b0p = b_prime.x;
+    b1p = b_prime.y;
+    b2p = b_prime.z;
+    Real B = (1 / ((b0p / p0.z) + (b1p / p1.z) + (b2p / p2.z)));
+    return Vector3{b0p * B / p0.z, b1p * B / p1.z, b2p * B / p2.z};
+}
+
+//returns Vector3{ b0' , b1', b2' }, order of passing in matters
+Vector3 unique_coefficient(Vector3 p0p, Vector3 p1p, Vector3 p2p, Vector3 p){
+    Real b0, b1, b2;
+    Real full_area = length(cross(p1p, p0p)) / 2;
+    b0 = (length(cross(p0p, p))/2) / full_area;
+    b1 = (length(cross(p1p, p))/2) / full_area;
+    b2 = (length(cross(p2p, p))/2) / full_area;
+    return Vector3{b0, b1, b2};
+}
+
+//return the depth of a point using unique coefficients 
+Real original_depth(Vector3 b, Vector3 p0, Vector3 p1, Vector3 p2){
+    Real b0, b1, b2;
+    b0 = b.x;
+    b1 = b.y;
+    b2 = b.z;
+    return b0*p0.z + b1*p1.z + b2*p2.z;
 }
 
 Image3 hw_2_1(const std::vector<std::string> &params) {
@@ -64,7 +91,6 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
     Vector2 p0p{0.0,0.0};
     Vector2 p1p{0.0,0.0};
     Vector2 p2p{0.0,0.0};
-    
     p0p = projectedPoint(p0);
     p1p = projectedPoint(p1);
     p2p = projectedPoint(p2); 
@@ -79,7 +105,7 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
     p1p = c_space_to_i_space(p1p, s, aspect_ratio, img.width, img.height);
     p2p = c_space_to_i_space(p2p, s, aspect_ratio, img.width, img.height);
     
-    std::cout<< color   << std::endl;
+
 
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
@@ -90,7 +116,7 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
 }
 
 Image3 hw_2_2(const std::vector<std::string> &params) {
-    // Homework 2.2: render a triangle mesh
+
 
     Image3 img(640 /* width */, 480 /* height */);
 
@@ -109,6 +135,8 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
 
     TriangleMesh mesh = meshes[scene_id];
     UNUSED(mesh); // silence warning, feel free to remove this
+
+    paintCanvas(&img, Vector3{1.0, 1.0, 1.0});
 
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
