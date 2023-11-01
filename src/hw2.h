@@ -18,5 +18,12 @@ Vector3 projected_barycentric_coordinate(Vector3 b_prime, Vector3 vector_zs, Vec
 Vector3 unique_coefficient(Vector3 p0p, Vector3 p1p, Vector3 p2p, Vector3 p);
 Real original_depth(Vector3 b, Vector3 p0, Vector3 p1, Vector3 p2);
 Vector3 original_coefficients(Vector3 b_prime, Vector3 p0, Vector3 p1, Vector3 p2);
+Real depth_in_world(Vector2 pp, Vector3 p0, Vector3 p1, Vector3 p2, Real s, Real width, Real height);
+Vector2 c_space_to_i_space(Vector2 v, Real s, Real width, Real height);
+std::vector<Vector2> projected_in_i(Vector3 p0, Vector3 p1, Vector3 p2, Real s, Real width, Real height);
+Vector3 vector2_to_3(Vector2 v, Real z);
+
+
+
 
 
