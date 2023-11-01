@@ -3,6 +3,8 @@
 
 using namespace hw2;
 
+
+
 // camera to image
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real a, Real width, Real height){
     Real x_in_i = width * ((v.x + s*a) / (2 * s * a));
@@ -19,13 +21,13 @@ Vector2 c_space_to_i_space(Vector2 v, Real s, Real width, Real height){
 
 
 Vector2 projectedPoint(Vector3 v){
-    Vector2 projectedPoint{v.x/v.z,v.y/v.z};
+    Vector2 projectedPoint{-v.x/v.z,-v.y/v.z};
     return projectedPoint;
 }
 
 // world to camera
 Vector3 projectedPoint_v3(Vector3 v){
-    Vector3 projectedPoint{v.x/v.z,v.y/v.z, -1.0};
+    Vector3 projectedPoint{-v.x/v.z,-v.y/v.z, -1.0};
     return projectedPoint;
 }
 
@@ -98,6 +100,20 @@ void paintCanvas(Image3* imgPtr, Vector3 color){
     }
 }
 
+//flip the image
+void flip_upside_down(Image3* imgPtr){
+    Real height = imgPtr->height;
+    Real width = imgPtr->width;
+    Vector3 color;
+    for (int y = 0; y < height / 2; y++) {
+        for (int x = 0; x < width; x++) {
+            color = (*imgPtr)(x, (height - y));
+            (*imgPtr)(x, (height - y)) = (*imgPtr)(x, y);
+            (*imgPtr)(x, y) = color;
+        }
+    }
+}
+
 Image3 hw_2_1(const std::vector<std::string> &params) {
     // Homework 2.1: render a single 3D triangle
 
@@ -151,6 +167,7 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
             if (inTriangle(x, y , p0p, p1p, p2p)) img(x, y) = color;
         }
     }
+    flip_upside_down(&img);
     return img;
 }
 
@@ -172,7 +189,6 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
     }
 
     TriangleMesh mesh = meshes[scene_id];
-    // UNUSED(mesh); // silence warning, feel free to remove this
 
     paintCanvas(&img, Vector3{1.0, 1.0, 1.0});
 
@@ -192,12 +208,10 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
             p2 = mesh.vertices[triangle_vector.z];
 
             // find the projected points for p0 p1 p2
-            p0p = projectedPoint(p0);
-            p1p = projectedPoint(p1);
-            p2p = projectedPoint(p2);
-            p0p = c_space_to_i_space(p0p, s, img.width, img.height);
-            p1p = c_space_to_i_space(p1p, s, img.width, img.height);
-            p2p = c_space_to_i_space(p1p, s, img.width, img.height);
+            std::vector projected_points =  projected_in_i(p0, p1, p2, s, img.width, img.height);
+            p0p = projected_points[0];
+            p1p = projected_points[1];
+            p2p = projected_points[2];
 
             if (inTriangle(x, y, p0p, p1p, p2p)){
                 Real depth = depth_in_world(Vector2{x, y}, p0, p1, p2, s, img.width, img.height);
@@ -206,12 +220,9 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
                     img(x, y) = mesh.face_colors[i];
                 }
             }
-            
-
-
         }
-
     }}
+    flip_upside_down(&img);
     return img;
 }
 
