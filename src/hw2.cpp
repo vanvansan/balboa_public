@@ -8,14 +8,14 @@ using namespace hw2;
 // camera to image
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real a, Real width, Real height){
     Real x_in_i = width * ((v.x + s*a) / (2 * s * a));
-    Real y_in_i = height * ((v.y + s) / (2 * s));
+    Real y_in_i = height * ((-v.y + s) / (2 * s));
     return Vector2{x_in_i, y_in_i};
 }
 
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real width, Real height){
     Real a = double(width)/height;
     Real x_in_i = width * ((v.x + s*a) / (2 * s * a));
-    Real y_in_i = height * ((v.y + s) / (2 * s));
+    Real y_in_i = height * ((-v.y + s) / (2 * s));
     return Vector2{x_in_i, y_in_i};
 }
 
@@ -100,22 +100,20 @@ void paintCanvas(Image3* imgPtr, Vector3 color){
     }
 }
 
-//flip the image
-void flip_upside_down(Image3* imgPtr){
-    Real height = imgPtr->height;
-    Real width = imgPtr->width;
-    Vector3 color;
-    for (int y = 0; y < height / 2; y++) {
-        for (int x = 0; x < width; x++) {
-            color = (*imgPtr)(x, (height - y));
-            (*imgPtr)(x, (height - y)) = (*imgPtr)(x, y);
-            (*imgPtr)(x, y) = color;
-        }
-    }
-}
+// void flip_upside_down(Image3* imgPtr){
+//     Real height = imgPtr->height;
+//     Real width = imgPtr->width;
+//     Vector3 color;
+//     for (int y = 0; y < height / 2; y++) {
+//         for (int x = 0; x < width; x++) {
+//             color = (*imgPtr)(x, (height - y));
+//             (*imgPtr)(x, (height - y)) = (*imgPtr)(x, y);
+//             (*imgPtr)(x, y) = color;
+//         }
+//     }
+// }
 
 Image3 hw_2_1(const std::vector<std::string> &params) {
-    // Homework 2.1: render a single 3D triangle
 
     Image3 img(640 /* width */, 480 /* height */);
 
@@ -167,7 +165,6 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
             if (inTriangle(x, y , p0p, p1p, p2p)) img(x, y) = color;
         }
     }
-    flip_upside_down(&img);
     return img;
 }
 
@@ -222,7 +219,6 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
             }
         }
     }}
-    flip_upside_down(&img);
     return img;
 }
 
