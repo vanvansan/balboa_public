@@ -10,6 +10,7 @@ Image3 hw_2_2(const std::vector<std::string> &params);
 Image3 hw_2_3(const std::vector<std::string> &params);
 Image3 hw_2_4(const std::vector<std::string> &params);
 
+void paintCanvas(Image3* imgPtr, Vector3 color);
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real a, Real width, Real height);
 Vector2 projectedPoint(Vector3 v);
 Vector3 projectedPoint_v3(Vector3 v);

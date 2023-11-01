@@ -48,6 +48,16 @@ Real original_depth(Vector3 b, Vector3 p0, Vector3 p1, Vector3 p2){
     return b0*p0.z + b1*p1.z + b2*p2.z;
 }
 
+void paintCanvas(Image3* imgPtr, Vector3 color){
+    Real height = imgPtr->height;
+    Real width = imgPtr->width;
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            (*imgPtr)(x, y) = color;
+        }
+    }
+}
+
 Image3 hw_2_1(const std::vector<std::string> &params) {
     // Homework 2.1: render a single 3D triangle
 
@@ -116,10 +126,8 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
 }
 
 Image3 hw_2_2(const std::vector<std::string> &params) {
-
-
     Image3 img(640 /* width */, 480 /* height */);
-
+    
     Real s = 1; // scaling factor of the view frustrum
     Real z_near = 1e-6; // distance of the near clipping plane
     int scene_id = 0;
