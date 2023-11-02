@@ -312,7 +312,6 @@ Image3 hw_2_4(const std::vector<std::string> &params) {
     if (params.size() == 0) {
         return Image3(0, 0);
     }
-
     Scene scene = parse_scene(params[0]);
     std::cout << scene << std::endl;
 

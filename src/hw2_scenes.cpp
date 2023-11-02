@@ -296,7 +296,14 @@ Matrix4x4 parse_transformation(const json &node) {
                     (*up_it)[0], (*up_it)[1], (*up_it)[2]
                 });
             }
-            // TODO (HW2.4): construct a lookat matrix and composite with F
+            Vector3 d = normalize(target - position);
+            Vector3 r = normalize(cross(d, up));
+            Vector3 u_prime = cross(r, d);
+            Matrix4x4 L = Matrix4x4::identity();
+            L(0, 0)= r.x; L(0, 1)= u_prime.x;  L(0, 2)= -d.x;  L(0, 3)= position.x;
+            L(1, 0)= r.y; L(1, 1)= u_prime.y;  L(1, 2)= -d.y;  L(1, 3)= position.y;   
+            L(2, 0)= r.z; L(2, 1)= u_prime.z;  L(2, 2)= -d.z;  L(2, 3)= position.z;   
+            F = L * F;
         }
     }
     return F;
