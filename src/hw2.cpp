@@ -53,13 +53,17 @@ Vector3 original_coefficients(Vector3 b_prime, Vector3 p0, Vector3 p1, Vector3 p
     return Vector3{b0p * B / p0.z, b1p * B / p1.z, b2p * B / p2.z};
 }
 
+Real mag_sq(Vector3 v1){
+    return v1.x * v1.x + v1.y * v1.y + v1.z * v1.z;
+}
 //returns Vector3{ b0' , b1', b2' }, order of passing in matters
-Vector3 unique_coefficient(Vector3 p0p, Vector3 p1p, Vector3 p2p, Vector3 p){
+Vector3 unique_coefficient(Vector3 p0p, Vector3 p1p, Vector3 p2p, Vector3 pp){
     Real b0, b1, b2;
-    Real full_area = length(cross(p1p, p0p)) / 2;
-    b0 = (length(cross(p0p, p))/2) / full_area;
-    b1 = (length(cross(p1p, p))/2) / full_area;
-    b2 = (length(cross(p2p, p))/2) / full_area;
+    Real full_area = length(cross(p1p - p2p , p0p - p2p)) / 2;
+
+    b0 = (length(cross(p1p - pp, p2p - pp))/2) / full_area;
+    b1 = (length(cross(p0p - pp, p2p - pp))/2) / full_area;
+    b2 = (length(cross(p1p - pp, p0p - pp))/2) / full_area;
     return Vector3{b0, b1, b2};
 }
 
@@ -85,7 +89,7 @@ Real depth_in_world(Vector2 pp, Vector3 p0, Vector3 p1, Vector3 p2, Real s, Real
     p0p = projected_points[0];
     p1p = projected_points[1];
     p2p = projected_points[2];
-    Vector3 b = unique_coefficient(vector2_to_3(p0p, -1),vector2_to_3(p1p, -1) , vector2_to_3(p1p, -1), vector2_to_3(pp, -1));
+    Vector3 b = unique_coefficient(vector2_to_3(p0p, -1),vector2_to_3(p1p, -1) , vector2_to_3(p2p, -1), vector2_to_3(pp, -1));
     b = original_coefficients(b, p0, p1, p2);
     return original_depth(b, p0, p1, p2);
 }
@@ -159,10 +163,13 @@ Image3 hw_2_1(const std::vector<std::string> &params) {
     p0p = projected_points[0];
     p1p = projected_points[1];
     p2p = projected_points[2];
-    paintCanvas(&img, img.width, img.height, Vector3{1.0, 1.0, 1.0});
+    paintCanvas(&img, img.width, img.height, Vector3{0.5, 0.5, 0.5});
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
-            if (inTriangle(x, y , p0p, p1p, p2p)) img(x, y) = color;
+            if (inTriangle(x, y , p0p, p1p, p2p) && -p0.z > z_near
+                            && -p1.z > z_near && -p2.z > z_near) {
+                img(x, y) = color;
+            }
         }
     }
     return img;
@@ -187,15 +194,15 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
 
     TriangleMesh mesh = meshes[scene_id];
 
-    paintCanvas(&img, Vector3{1.0, 1.0, 1.0});
+    paintCanvas(&img, Vector3{0.5, 0.5, 0.5});
 
     Vector3 p0, p1, p2, p;
     Vector2 p0p, p1p, p2p;
-
+    Real depth, z_min;
     // for each picel,  using ray tracing style
     for (int y = 0; y < img.height; y++) {
     for (int x = 0; x < img.width; x++) {
-        Real z_min = __DBL_MAX__;
+        z_min = __DBL_MAX__;
         // for each triangle 
         Vector3i triangle_vector;
         for (int i = 0; i < mesh.faces.size(); i++){
@@ -204,17 +211,22 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
             p1 = mesh.vertices[triangle_vector.y];
             p2 = mesh.vertices[triangle_vector.z];
 
-            // find the projected points for p0 p1 p2
-            std::vector projected_points =  projected_in_i(p0, p1, p2, s, img.width, img.height);
-            p0p = projected_points[0];
-            p1p = projected_points[1];
-            p2p = projected_points[2];
-
-            if (inTriangle(x, y, p0p, p1p, p2p)){
-                Real depth = depth_in_world(Vector2{x, y}, p0, p1, p2, s, img.width, img.height);
-                if (depth < z_min){
-                    z_min = depth;
-                    img(x, y) = mesh.face_colors[i];
+            // if all points > z_near 
+            if (-p0.z > z_near && -p1.z > z_near && -p2.z > z_near){
+            // if(true){
+                // find the projected points for p0 p1 p2
+                std::vector projected_points =  projected_in_i(p0, p1, p2, s, img.width, img.height);
+                p0p = projected_points[0];
+                p1p = projected_points[1];
+                p2p = projected_points[2];
+                // if p in triangle and all z > znear
+                if (inTriangle(x, y, p0p, p1p, p2p)){
+                    depth = abs(depth_in_world(Vector2{x, y}, p0, p1, p2, s, img.width, img.height));
+ 
+                    if (depth < z_min){
+                        z_min = depth;
+                        img(x, y) = mesh.face_colors[i];
+                    }
                 }
             }
         }
