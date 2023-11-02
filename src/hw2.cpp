@@ -303,6 +303,10 @@ Image3 hw_2_3(const std::vector<std::string> &params) {
     return img;
 }
 
+// Matrix4x4 projection_matrix()
+// Matrix4x4 view_matrix()
+// Matrix4x4 model_matrix()
+
 Image3 hw_2_4(const std::vector<std::string> &params) {
     // Homework 2.4: render a scene with transformation
     if (params.size() == 0) {
@@ -314,7 +318,7 @@ Image3 hw_2_4(const std::vector<std::string> &params) {
 
     Image3 img(scene.camera.resolution.x,
                scene.camera.resolution.y);
-
+    scene.background;
     for (int y = 0; y < img.height; y++) {
         for (int x = 0; x < img.width; x++) {
             img(x, y) = Vector3{1, 1, 1};
