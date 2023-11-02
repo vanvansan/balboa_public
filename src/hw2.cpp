@@ -235,7 +235,7 @@ Image3 hw_2_2(const std::vector<std::string> &params) {
 }
 
 Image3 hw_2_3(const std::vector<std::string> &params) {
-    // Homework 2.3: render a triangle mesh with vertex colors
+
 
     Image3 img(640 /* width */, 480 /* height */);
 
@@ -253,13 +253,53 @@ Image3 hw_2_3(const std::vector<std::string> &params) {
     }
 
     TriangleMesh mesh = meshes[scene_id];
-    UNUSED(mesh); // silence warning, feel free to remove this
 
+//  copied from 2.2
+    paintCanvas(&img, Vector3{0.5, 0.5, 0.5});
+
+    Vector3 p0, p1, p2, p, C0, C1, C2; 
+    Vector2 p0p, p1p, p2p;
+    
+    Real depth, z_min;
+    // for each picel,  using ray tracing style
     for (int y = 0; y < img.height; y++) {
-        for (int x = 0; x < img.width; x++) {
-            img(x, y) = Vector3{1, 1, 1};
+    for (int x = 0; x < img.width; x++) {
+        z_min = __DBL_MAX__;
+        // for each triangle 
+        Vector3i triangle_vector;
+        for (int i = 0; i < mesh.faces.size(); i++){
+            triangle_vector = mesh.faces[i];
+            p0 = mesh.vertices[triangle_vector.x];
+            p1 = mesh.vertices[triangle_vector.y];
+            p2 = mesh.vertices[triangle_vector.z];
+
+            // if all points > z_near 
+            if (-p0.z > z_near && -p1.z > z_near && -p2.z > z_near){
+            // if(true){
+                // find the projected points for p0 p1 p2
+                std::vector projected_points =  projected_in_i(p0, p1, p2, s, img.width, img.height);
+                p0p = projected_points[0];
+                p1p = projected_points[1];
+                p2p = projected_points[2];
+                // if p in triangle and all z > znear
+                if (inTriangle(x, y, p0p, p1p, p2p)){
+                    depth = abs(depth_in_world(Vector2{x, y}, p0, p1, p2, s, img.width, img.height));
+ 
+                    if (depth < z_min){
+                        z_min = depth;
+                        Vector3 b = unique_coefficient(vector2_to_3(p0p, -1),vector2_to_3(p1p, -1) , vector2_to_3(p2p, -1), Vector3{(Real)x, (Real)y, -1.0});
+                        b = original_coefficients(b, p0, p1, p2);
+                        C0 = mesh.vertex_colors[triangle_vector.x];
+                        C1 = mesh.vertex_colors[triangle_vector.y];
+                        C2 = mesh.vertex_colors[triangle_vector.z];
+                        Vector3 color_v = Vector3{0.0,0.0,0.0};
+                        color_v = C0*b.x + b.y*C1 +b.z*C2;
+                        img(x, y) = color_v;
+                    }
+                }
+            }
         }
-    }
+    }}
     return img;
 }
 
