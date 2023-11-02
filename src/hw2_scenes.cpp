@@ -261,8 +261,8 @@ Matrix4x4 parse_transformation(const json &node) {
             R(1, 1)= axis.y*axis.y + cos(angle)*(1 - axis.y*axis.y);
             R(2, 1)= (1- cos(angle))*axis.z*axis.y + axis.x*sin(angle);
             // third col
-            R(2, 0)= (1- cos(angle))*axis.x*axis.z + axis.y*sin(angle);
-            R(2, 1)= (1- cos(angle))*axis.y*axis.z - axis.x*sin(angle);
+            R(0, 2)= (1- cos(angle))*axis.x*axis.z + axis.y*sin(angle);
+            R(1, 2)= (1- cos(angle))*axis.y*axis.z - axis.x*sin(angle);
             R(2, 2)= axis.z*axis.z + cos(angle)*(1 - axis.z*axis.z);
             F = R * F;
         } else if (auto translate_it = it->find("translate"); translate_it != it->end()) {
@@ -305,6 +305,7 @@ Matrix4x4 parse_transformation(const json &node) {
             L(2, 0)= r.z; L(2, 1)= u_prime.z;  L(2, 2)= -d.z;  L(2, 3)= position.z;   
             F = L * F;
         }
+
     }
     return F;
 }

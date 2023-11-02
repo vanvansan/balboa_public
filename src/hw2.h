@@ -22,6 +22,9 @@ Real depth_in_world(Vector2 pp, Vector3 p0, Vector3 p1, Vector3 p2, Real s, Real
 Vector2 c_space_to_i_space(Vector2 v, Real s, Real width, Real height);
 std::vector<Vector2> projected_in_i(Vector3 p0, Vector3 p1, Vector3 p2, Real s, Real width, Real height);
 Vector3 vector2_to_3(Vector2 v, Real z);
+Vector3 vector4_to_3(Vector4 v);
+Vector4 vector3_to_4(Vector3 v, Real w);
+
 
 
 
