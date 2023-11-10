@@ -1,3 +1,1 @@
-- gamma correction
-
-- generate outputs
+- add "hw_n.h" to hw_n+1.h

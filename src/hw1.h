@@ -12,7 +12,6 @@ bool inTriangle(Real x, Real y, Vector2 p0, Vector2 p1, Vector2 p2);
 
 
 void paintCanvas(Image3* imgPtr,Real width, Real height, Vector3 color);
-void paintCanvas(Image3* imgPtr, Vector3 color);
 
 
 
