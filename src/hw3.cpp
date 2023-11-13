@@ -28,16 +28,31 @@ void hw_3_1(const std::vector<std::string> &params) {
     // create window obj
     GLFWwindow* window = glfwCreateWindow(SCR_WIDTH , SCR_HEIGHT, "hw window", NULL, NULL);
 
+    // incase of error
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
     }
+
+    // get glad to configure opengl
+    // gladLoadGL();
+
+
+    // put the window to current context
     glfwMakeContextCurrent(window);
     // assign method pointer
-    glfwSetFramebufferSizeCallback(window, resize_window);
+    // glfwSetFramebufferSizeCallback(window, resize_window);
+
+    // set the window color
+    // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+    // specify viewport
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
     std::cout << "Failed to initialize GLAD" << std::endl;
     }   
+
+    // glViewport(0, 0, 2000, 2000);
+
     while(!glfwWindowShouldClose(window)){
         // input
         // processInput(window);
