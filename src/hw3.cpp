@@ -16,7 +16,7 @@ const char *fragShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "FragColor = vec4(0.0f, 0.0f, 0.0f, 1.0f);\n"
+    "FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
     "}\0";
 
 void resize_window(GLFWwindow* window, int width, int height){
@@ -26,6 +26,11 @@ void resize_window(GLFWwindow* window, int width, int height){
 void processInput(GLFWwindow *window){
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
+}
+
+Vector3f rotate(GLfloat* vertices, Vector3 axis, Real angle){
+    // TODO
+    return Vector3f();
 }
 
 // initialize openGL with version 3 and for apple
@@ -82,7 +87,6 @@ void hw_3_1(const std::vector<std::string> &params) {
 }
 
 void hw_3_2(const std::vector<std::string> &params) {
-    std::cout << "checkpoint 0"<< std::endl;
 
     hw_initialize_gl();
 
@@ -142,13 +146,7 @@ void hw_3_2(const std::vector<std::string> &params) {
     GLuint VAO;
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
-
-    std::cout << "checkpoint 1"<< std::endl;
-
-
     // set vertex attributes pointers
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0); 
 
     GLuint VBO;
     glGenBuffers(1, &VBO); //geneate a buffer with id
@@ -156,7 +154,14 @@ void hw_3_2(const std::vector<std::string> &params) {
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
 
 
-    std::cout << "checkpoint 2"<< std::endl;
+    GLuint EBO;
+    glGenBuffers(1, &EBO); //geneate a buffer with id
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), &faces, GL_STATIC_DRAW);
+    
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0); 
+
 
 
     // render window
@@ -165,12 +170,12 @@ void hw_3_2(const std::vector<std::string> &params) {
         processInput(window);
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // use shaderProgram
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
-        glClear(GL_COLOR_BUFFER_BIT);
         // glfwSetFramebufferSizeCallback(window, resize_window);
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
