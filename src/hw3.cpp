@@ -5,8 +5,6 @@
 
 using namespace hw3;
 
-const int SCR_HEIGHT = 720;
-const int SCR_WIDTH = 1280;
 
 void resize_window(GLFWwindow* window, int width, int height){
     glViewport(0, 0, width, height);
@@ -17,7 +15,8 @@ void processInput(GLFWwindow *window){
         glfwSetWindowShouldClose(window, true);
 }
 
-void hw_3_1(const std::vector<std::string> &params) {
+// initialize openGL with version 3 and for apple
+void hw_initialize_gl(){
     // initialize
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -25,42 +24,43 @@ void hw_3_1(const std::vector<std::string> &params) {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     
-    // create window obj
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH , SCR_HEIGHT, "hw window", NULL, NULL);
+}
+
+void initialize_glad(){
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+        std::cout << "Failed to initialize GLAD" << std::endl;
+    }   
+}
+
+GLFWwindow* newWindow(int height, int width, const char* name){
+    GLFWwindow* window = glfwCreateWindow(height , width, name, NULL, NULL);
 
     // incase of error
     if (window == NULL){
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
     }
-
-    // get glad to configure opengl
-    // gladLoadGL();
-
-
     // put the window to current context
     glfwMakeContextCurrent(window);
-    // assign method pointer
-    // glfwSetFramebufferSizeCallback(window, resize_window);
+    return window;
+}
 
-    // set the window color
-    // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-    // specify viewport
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
-    std::cout << "Failed to initialize GLAD" << std::endl;
-    }   
+void hw_3_1(const std::vector<std::string> &params) {
+    
+    hw_initialize_gl();
 
-    // glViewport(0, 0, 2000, 2000);
+    // create window obj
+    GLFWwindow* window = newWindow(1280, 720, "hw 3_1");
+    initialize_glad();
 
     while(!glfwWindowShouldClose(window)){
         // input
-        // processInput(window);
-
+        processInput(window);
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+        // glfwSetFramebufferSizeCallback(window, resize_window);
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();    
@@ -69,11 +69,100 @@ void hw_3_1(const std::vector<std::string> &params) {
 }
 
 void hw_3_2(const std::vector<std::string> &params) {
-    // HW 3.2: Render a single 2D triangle
+    // initialize glad
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)){
+    std::cout << "Failed to initialize GLAD" << std::endl;
+    }   
+
+    // primitive input
+    float vertices[] = {
+    -0.0f, -0.0f, 0.0f,
+     0.5f, -0.5f, 0.0f,
+     0.5f,  0.0f, 0.0f
+    }; 
+
+    // gen VAO
+    GLuint VAO;
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+
+    // set vertex attributes pointers
+    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0); 
+
+    GLuint VBO;
+    glGenBuffers(1, &VBO); //geneate a buffer with id
+    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the buffer type
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
+
+    // GLSL
+    const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+    const char *fragShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
+
+    //create shader id
+    GLuint vertexShader = glCreateShader((GLchar)GL_VERTEX_SHADER);
+    GLuint fragShader = glCreateShader((GLchar)GL_FRAGMENT_SHADER);
+    // passin shader source code
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL );
+    glShaderSource(fragShader , 1, &fragShaderSource, NULL );
+    // compile and assign shader
+    glCompileShader(vertexShader);
+    glCompileShader(fragShader);
+
+
+
+    // check if shader successfully compiled
+    int success0 = 0;
+    int success1 = 0;
+    char infoLog[512];
+    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success0);
+    glGetShaderiv(fragShader, GL_COMPILE_STATUS, &success1);
+    if (!(success0 && success1)){
+        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::VERTEX or FRAMENTATION::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    // create shader program and attach the shaders
+    GLuint shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vertexShader);
+    glAttachShader(shaderProgram, fragShader);
+    glLinkProgram(shaderProgram);
+
+    // check if shaders attached
+    int success = 0;
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+    if(!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::PROGRAM::SHADER_PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+
+    // use shaderProgram
+    glUseProgram(shaderProgram);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+    // delete used shader sources
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragShader); 
+
+
 }
 
 void hw_3_3(const std::vector<std::string> &params) {
     // HW 3.3: Render a scene
+    
     if (params.size() == 0) {
         return;
     }
