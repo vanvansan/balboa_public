@@ -3,20 +3,39 @@
 #include "3rdparty/glfw/include/GLFW/glfw3.h"
 #include "hw3_scenes.h"
 
+#include <glm-master/glm/glm.hpp>
+#include <glm-master/glm/gtc/matrix_transform.hpp>
+#include <glm-master/glm/gtc/type_ptr.hpp>
+
 using namespace hw3;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in vec2 aTexCoord;\n"
+    "out vec2 TexCoord;\n"
+    "uniform mat4 transform;\n"
     "void main()\n"
     "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "gl_Position = transform * vec4(aPos, 1.0);\n"
+        "TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
     "}\0";
 
 const char *fragShaderSource = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
-    "FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
+        "FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
+    "}\0";
+
+const char *transShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "layout (location = 1) in vec2 aTexCoord;\n"
+    "out vec2 TexCoord;\n"
+    "uniform mat4 transform;\n"
+    "void main()\n"
+    "{\n"
+        "gl_Position = transform * vec4(aPos, 1.0);\n"
+        "TexCoord = vec2(aTexCoord.x, aTexCoord.y);\n"
     "}\0";
 
 void resize_window(GLFWwindow* window, int width, int height){
@@ -28,10 +47,6 @@ void processInput(GLFWwindow *window){
         glfwSetWindowShouldClose(window, true);
 }
 
-Vector3f rotate(GLfloat* vertices, Vector3 axis, Real angle){
-    // TODO
-    return Vector3f();
-}
 
 // initialize openGL with version 3 and for apple
 void hw_initialize_gl(){
@@ -61,6 +76,24 @@ GLFWwindow* newWindow(int height, int width, const char* name){
     // put the window to current context
     glfwMakeContextCurrent(window);
     return window;
+}
+
+GLuint hw_compileShader(const char* source ,GLenum type){
+    //create shader id
+    GLuint ID = glCreateShader(type);
+    // passin shader source code
+    glShaderSource(ID, 1, &source, NULL );
+    // compile and assign shader
+    glCompileShader(ID);
+    // check if shader successfully compiled
+    int success = 0;
+    char infoLog[512];
+    glGetShaderiv(ID, GL_COMPILE_STATUS, &success);
+    if (!(success)){
+        glGetShaderInfoLog(ID, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::???::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+    return ID;
 }
 
 
@@ -94,27 +127,14 @@ void hw_3_2(const std::vector<std::string> &params) {
     GLFWwindow* window = newWindow(1280, 720, "hw 3_2");
     initialize_glad();
 
-    //create shader id
-    GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-    // passin shader source code
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL );
-    glShaderSource(fragShader , 1, &fragShaderSource, NULL );
-    // compile and assign shader
-    glCompileShader(vertexShader);
-    glCompileShader(fragShader);
-    // check if shader successfully compiled
-    int success0 = 0;
-    int success1 = 0;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success0);
-    glGetShaderiv(fragShader, GL_COMPILE_STATUS, &success1);
-    if (!(success0 && success1)){
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX or FRAMENTATION::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
+    // compile shader
+    GLuint vertexShader = hw_compileShader(vertexShaderSource ,GL_VERTEX_SHADER);
+    GLuint fragShader = hw_compileShader(fragShaderSource ,GL_FRAGMENT_SHADER);
+    
 
-    // create shader program and attach the shaders
+    
+    // link the shade to program
+    char infoLog[512];
     GLuint shaderProgram = glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
     glAttachShader(shaderProgram, fragShader);
@@ -168,12 +188,21 @@ void hw_3_2(const std::vector<std::string> &params) {
     while(!glfwWindowShouldClose(window)){
         // input
         processInput(window);
-        // render
+        // clear color buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // use shaderProgram
+        // create transformations
+        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // pass to shaderProgram
         glUseProgram(shaderProgram);
+        unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
+        // render the triangle
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         // glfwSetFramebufferSizeCallback(window, resize_window);
