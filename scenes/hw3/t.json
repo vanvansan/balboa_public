@@ -6,8 +6,8 @@
             {
                 "lookat":
                 {
-                    "position": [0, 1, 0],
-                    "target": [0, 0, -5],
+                    "position": [0, 0, -1.0],
+                    "target": [0, 0, 0],
                     "up": [0, 1, 0]
                 }
             }

@@ -251,27 +251,26 @@ void hw_3_3(const std::vector<std::string> &params) {
     Camera camera = scene.camera;
     Vector3f background = scene.background;
     std::vector<TriangleMesh> meshes = scene.meshes;
+    Real z_far = camera.z_far; Real z_near = camera.z_near;
+    Real height = camera.resolution.x;
+    Real width = camera.resolution.y;
+    Real s = camera.s;
+    GLfloat aspect_ratio = (GLfloat) width / (GLfloat) height;
+
     
     hw_initialize_gl();
 
     // create window
-    GLFWwindow* window = newWindow(720, 720, "hw 3_3");
+    GLFWwindow* window = newWindow(height, width, "hw 3_3");
     initialize_glad();
 
     // compile shader
     Shader shader("hw3_3_vert.vs", "hw3_3_frag.fs");
 
-    
-    // link the shade to program
-    // GLuint shaderProgram = hw_link_pragram(vertexShader, fragShader);
-    
-
     // primitive input
     std::vector<Vector3f> vertices = meshes[0].vertices;
     std::vector<Vector3i> faces = meshes[0].faces;
     
-
-
     // gen VAO
     GLuint VAO, VBO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -285,10 +284,10 @@ void hw_3_3(const std::vector<std::string> &params) {
     glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the buffer type
     // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3f)* vertices.size(), vertices.data(), GL_STATIC_DRAW);
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
     // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces.data(), GL_STATIC_DRAW);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Vector3i) * faces.size(), faces.data(), GL_STATIC_DRAW);
+
 
     glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0);
     glEnableVertexAttribArray(0); 
@@ -298,27 +297,40 @@ void hw_3_3(const std::vector<std::string> &params) {
     glBindVertexArray(0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0 );
 
+
+    Matrix4x4f proj = Matrix4x4f::identity();
+    proj(0,0) = Real(1/(aspect_ratio*s));
+    proj(1,1) = Real(1/(s));
+    proj(2,2) = Real(-((z_far)/(z_far - z_near)));
+    proj(2,3) = Real(-((z_far*z_near)/(z_far - z_near)));
+    proj(3,2) = Real(-1);
+
+    
+
+    glEnable(GL_DEPTH_TEST);
     // render window
     while(!glfwWindowShouldClose(window)){
         // input
         processInput(window);
         // clear color buffer
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // create transformations
-        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-        transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        // glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        // transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
-        // pass to shaderProgram
-        glUseProgram(shader.ID);
-        unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+        // use shaderProgram
+        shader.use();
+
+        // pass in matrices
+        unsigned int projLoc = glGetUniformLocation(shader.ID, "projection");
+        glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.ptr());
 
         // render the triangles
         glBindVertexArray(VAO);
         // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
-        glDrawElements(GL_TRIANGLES, 3* faces.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 3 * faces.size(), GL_UNSIGNED_INT, 0);
         glfwSetFramebufferSizeCallback(window, resize_window);
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
