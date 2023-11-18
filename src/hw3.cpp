@@ -5,6 +5,8 @@
 
 #include <glm-master/glm/glm.hpp>
 #include <glm-master/glm/gtc/matrix_transform.hpp>
+// #include <glm-master/glm/gtc/matrix_projection.hpp>
+
 #include <glm-master/glm/gtc/type_ptr.hpp>
 
 
@@ -89,6 +91,7 @@ GLuint hw_compileShader(const char* source ,GLenum type){
 }
 
 
+
 GLuint hw_link_pragram(GLuint vertexShader, GLuint fragShader){
     GLuint shaderProgram =  glCreateProgram();
     glAttachShader(shaderProgram, vertexShader);
@@ -108,6 +111,9 @@ GLuint hw_link_pragram(GLuint vertexShader, GLuint fragShader){
     return shaderProgram;
 }
 
+void data_to_buffer(GLuint VAO, GLuint VBO,GLuint EBO, std::vector<TriangleMesh> meshes){
+
+}
 
 void hw_3_1(const std::vector<std::string> &params) {
     
@@ -215,6 +221,18 @@ void hw_3_2(const std::vector<std::string> &params) {
     glfwTerminate();
 }
 
+/*
+GLfloat v3vec_to_vert(std::vector<Vector3f> vertices){
+    GLfloat VAO[sizeof(vertices) * 3];
+    for (int i = 0; i < sizeof(vertices); i++){
+        vertices[i] = (GLfloat)vertices[i].x;
+    }
+    return 
+}
+*/
+
+
+
 void hw_3_3(const std::vector<std::string> &params) {
     if (params.size() == 0) {
         return;
@@ -225,56 +243,60 @@ void hw_3_3(const std::vector<std::string> &params) {
     Camera camera = scene.camera;
     Vector3f background = scene.background;
     std::vector<TriangleMesh> meshes = scene.meshes;
-    TriangleMesh mesh;
+    TriangleMesh temporaryMesh = meshes[0];
 
+
+    GLfloat aspect_ratio = (camera.resolution.x) / camera.resolution.y;
+    Real z_far = camera.z_far; Real z_near = camera.z_near;
+
+    Matrix4x4f view = inverse(camera.cam_to_world);
+    glm::mat4 proj(
+                Real(1/(aspect_ratio*camera.resolution.y)), Real(0), Real(0), Real(0),
+                Real(0), Real(1/ camera.resolution.y), Real(0), Real(0),
+                Real(0), Real(0), Real(-((z_far)/(z_far - z_near))), Real(-((z_far * z_near)/(z_far - z_near))),
+                Real(0), Real(0), Real(-1), Real(0));
+                
 
     hw_initialize_gl();
 
     // create window
-    GLFWwindow* window = newWindow(720, 720, "hw 3_2");
+    GLFWwindow* window = newWindow(camera.resolution.y, camera.resolution.x, "hw 3_2");
     initialize_glad();
 
-    // compile shader
-    // GLuint vertexShader = hw_compileShader(vertexShaderSource ,GL_VERTEX_SHADER);
-    // GLuint fragShader = hw_compileShader(fragShaderSource ,GL_FRAGMENT_SHADER);
-    Shader shader("hw3_3_vert", "hw3_3_frag");
-    
-    // link the shade to program
-    // GLuint shaderProgram = hw_link_pragram(vertexShader, fragShader);
+    // create shaderClass 
+    Shader shader("hw3_3_vert.vs", "hw3_3_frag.fs");
     
 
-    // primitive input
-    GLfloat vertices[] = {
-    0.0f, 0.0f, 0.0f,
-     0.5f, -0.5f, 0.0f,
-     0.5f,  0.0f, 0.5f,
-     -0.5f,  0.5f, 0.0f   
-    }; 
+    // pass meshes to VAOs
+    GLuint VAO[meshes.size()];
+    for (int i = 0; i < meshes.size(); i++){
+        std::vector<Vector3f> vertices = meshes[i].vertices;
+        std::vector<Vector3i> faces = meshes[i].faces;
+        std::vector<Vector3f> colors = meshes[i].vertex_colors;
+        glGenVertexArrays(1, &VAO[i]);
+        glBindVertexArray(VAO[i]);
+        GLuint VBO_vertex, VBO_color, EBO;
 
-    GLuint faces[] = {
-        0 , 1 , 3,
-        1 , 2 , 3,
-        0, 2, 3
-    };
+        glGenBuffers(1, &VBO_vertex); //geneate a buffer with id
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_vertex); // bind the buffer typel
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3f) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0);
+        glEnableVertexAttribArray(0);
 
-    // gen VAO
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO); //geneate a buffer with id
-    glGenBuffers(1, &EBO); //geneate a buffer with id
+        glGenBuffers(1, &VBO_color); //geneate a buffer with id
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_color); // bind the buffer typel
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3f) * colors.size(), colors.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        glGenBuffers(1, &EBO); //generate a buffer with id
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), &faces, GL_STATIC_DRAW);
+    }
 
 
-    glBindVertexArray(VAO);
     // set vertex attributes pointers
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the buffer type
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), &vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), &faces, GL_STATIC_DRAW);
-
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0);
-    glEnableVertexAttribArray(0); 
+    
 
     // unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -289,20 +311,25 @@ void hw_3_3(const std::vector<std::string> &params) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        std::vector<Vector3i> faces =  mesh.faces;
+        std::vector<Vector3f> vertices = mesh.vertices;
+        Matrix4x4f model = mesh.model_matrix; // one mesh
+
         // create transformations
-        glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+        glm::mat4 transform = glm::mat4(1.0f); 
+        glm::mat4 view          = glm::mat4(1.0f); 
+        glm::mat4 projection    = glm::mat4(1.0f);
+
         transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
         // pass to shaderProgram
-        // glUseProgram(shader);
         shader.use();
         unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
         glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
-
+        
         // render the triangle
         glBindVertexArray(VAO);
-        // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
-        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, sizeof(faces), GL_UNSIGNED_INT, 0);
         glfwSetFramebufferSizeCallback(window, resize_window);
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
