@@ -267,15 +267,12 @@ void hw_3_3(const std::vector<std::string> &params) {
     // compile shader
     Shader shader("hw3_3_vert.vs", "hw3_3_frag.fs");
 
-    // primitive input
-    std::vector<Vector3f> vertices = meshes[0].vertices;
-    std::vector<Vector3i> faces = meshes[0].faces;
 
     GLuint VAO[1];
     
-    int i = 0;
     // gen VAO
-    std::vector<Vector3f> vertices = meshes[i].vertices;
+    for (int i = 0; i < meshes.size(); i++){
+        std::vector<Vector3f> vertices = meshes[i].vertices;
         std::vector<Vector3i> faces = meshes[i].faces;
         std::vector<Vector3f> colors = meshes[i].vertex_colors;
         glGenVertexArrays(1, &VAO[i]);
@@ -297,7 +294,7 @@ void hw_3_3(const std::vector<std::string> &params) {
         glGenBuffers(1, &EBO); //generate a buffer with id
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(Vector3i), faces.data(), GL_STATIC_DRAW);
-
+    }
     // unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -319,7 +316,7 @@ void hw_3_3(const std::vector<std::string> &params) {
         // input
         processInput(window);
         // clear color buffer
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(background.x,background.y,background.z, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // create transformations
@@ -334,11 +331,15 @@ void hw_3_3(const std::vector<std::string> &params) {
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.ptr());
 
         // render the triangles
+    for (int i = 0; i < meshes.size(); i++){
+        TriangleMesh mesh = meshes[i];
+
         glBindVertexArray(VAO[i]);
         // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
-        glDrawElements(GL_TRIANGLES, 3 * faces.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 3 * mesh.faces.size(), GL_UNSIGNED_INT, 0);
         glfwSetFramebufferSizeCallback(window, resize_window);
- 
+    }
+
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
         glfwPollEvents();    
