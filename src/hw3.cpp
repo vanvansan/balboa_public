@@ -318,7 +318,7 @@ void hw_3_3(const std::vector<std::string> &params) {
         // render the triangles
         glBindVertexArray(VAO);
         // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
-        glDrawElements(GL_TRIANGLES, 9, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, 3* faces.size(), GL_UNSIGNED_INT, 0);
         glfwSetFramebufferSizeCallback(window, resize_window);
  
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
