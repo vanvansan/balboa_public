@@ -270,27 +270,33 @@ void hw_3_3(const std::vector<std::string> &params) {
     // primitive input
     std::vector<Vector3f> vertices = meshes[0].vertices;
     std::vector<Vector3i> faces = meshes[0].faces;
+
+    GLuint VAO[1];
     
+    int i = 0;
     // gen VAO
-    GLuint VAO, VBO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO); //geneate a buffer with id
-    glGenBuffers(1, &EBO); //geneate a buffer with id
+    std::vector<Vector3f> vertices = meshes[i].vertices;
+        std::vector<Vector3i> faces = meshes[i].faces;
+        std::vector<Vector3f> colors = meshes[i].vertex_colors;
+        glGenVertexArrays(1, &VAO[i]);
+        glBindVertexArray(VAO[i]);
+        GLuint VBO_vertex, VBO_color, EBO;
 
+        glGenBuffers(1, &VBO_vertex); //geneate a buffer with id
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_vertex); // bind the buffer typel
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3f) * vertices.size(), vertices.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(0);
 
-    glBindVertexArray(VAO);
-    // set vertex attributes pointers
+        glGenBuffers(1, &VBO_color); //geneate a buffer with id
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_color); // bind the buffer typel
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3f) * colors.size(), colors.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // bind the buffer type
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices.data(), GL_STATIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vector3f)* vertices.size(), vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
-    // glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(faces), faces.data(), GL_STATIC_DRAW);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Vector3i) * faces.size(), faces.data(), GL_STATIC_DRAW);
-
-
-    glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (void*)0);
-    glEnableVertexAttribArray(0); 
+        glGenBuffers(1, &EBO); //generate a buffer with id
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // bind the buffer type
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, faces.size() * sizeof(Vector3i), faces.data(), GL_STATIC_DRAW);
 
     // unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -328,7 +334,7 @@ void hw_3_3(const std::vector<std::string> &params) {
         glUniformMatrix4fv(projLoc, 1, GL_FALSE, proj.ptr());
 
         // render the triangles
-        glBindVertexArray(VAO);
+        glBindVertexArray(VAO[i]);
         // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
         glDrawElements(GL_TRIANGLES, 3 * faces.size(), GL_UNSIGNED_INT, 0);
         glfwSetFramebufferSizeCallback(window, resize_window);
