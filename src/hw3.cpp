@@ -338,7 +338,7 @@ void hw_3_3(const std::vector<std::string> &params) {
 
         float camX = sin(glfwGetTime()) * radius;
         float camY = cos(glfwGetTime()) * radius;
-        v = glm::lookAt(glm::vec3(obj.x + camX, obj.y + camY, obj.z ), glm::vec3(obj.x, obj.y, obj.z), glm::vec3(0.0, 0.0, 1.0)); 
+        // v = glm::lookAt(glm::vec3(obj.x + camX, obj.y + camY, obj.z ), glm::vec3(obj.x, obj.y, obj.z), glm::vec3(0.0, 0.0, 1.0)); 
 
         unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
         // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.ptr());
