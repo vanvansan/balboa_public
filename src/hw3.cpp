@@ -338,23 +338,23 @@ void hw_3_3(const std::vector<std::string> &params) {
 
         float camX = sin(glfwGetTime()) * radius;
         float camY = cos(glfwGetTime()) * radius;
-        // v = glm::lookAt(glm::vec3(obj.x + camX, obj.y + camY, obj.z ), glm::vec3(obj.x, obj.y, obj.z), glm::vec3(0.0, 0.0, 1.0)); 
+        v = glm::lookAt(glm::vec3(obj.x + camX, obj.y + camY, obj.z ), glm::vec3(obj.x, obj.y, obj.z), glm::vec3(0.0, 0.0, 1.0)); 
 
         unsigned int viewLoc = glGetUniformLocation(shader.ID, "view");
         // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, view.ptr());
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(v));
 
         // render the triangles
-    for (int i = 0; i < meshes.size(); i++){
-        TriangleMesh mesh = meshes[i];
-        Matrix4x4f model = mesh.model_matrix;
-        unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.ptr());
-        glBindVertexArray(VAO[i]);
-        // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
-        glDrawElements(GL_TRIANGLES, 3 * mesh.faces.size(), GL_UNSIGNED_INT, 0);
-        glfwSetFramebufferSizeCallback(window, resize_window);
-    }
+        for (int i = 0; i < meshes.size(); i++){
+            TriangleMesh mesh = meshes[i];
+            Matrix4x4f model = mesh.model_matrix;
+            unsigned int modelLoc = glGetUniformLocation(shader.ID, "model");
+            glUniformMatrix4fv(modelLoc, 1, GL_FALSE, model.ptr());
+            glBindVertexArray(VAO[i]);
+            // glDrawArrays(GL_TRIANGLES, 1, 3); // draw one triangle
+            glDrawElements(GL_TRIANGLES, 3 * mesh.faces.size(), GL_UNSIGNED_INT, 0);
+            glfwSetFramebufferSizeCallback(window, resize_window);
+        }
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         glfwSwapBuffers(window);
